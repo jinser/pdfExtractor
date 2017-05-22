@@ -1,17 +1,23 @@
 import java.io.IOException; 
 import org.apache.pdfbox.pdmodel.PDDocument;
+import ser.pdfbox.pdfDocument;
+import ser.pdfbox.pdfTextExtractor;
 
 public class Main {
     public static void main (String[] args) throws IOException {
-        System.out.println("Hello World");
-        PDDocument document = new PDDocument();
+        System.out.println("Initializing...");
+
+        //pdfDocument pdf = new pdfDocument("newdoc");
+        //pdf.loadPdfAndExtractText("newdoc");
+        //pdf.loadPdfAndAddText("newdoc","hello world!");
+        //pdf.addPageToPDF("newdoc2",3,"newdoc3");
+        //doc.addPage();
+        //doc.saveChanges();
         
-        //Saving the document
-      document.save("resource/my_doc.pdf");
-         
-      System.out.println("PDF created");  
-    
-      //Closing the document  
-      document.close();
+        pdfTextExtractor pdfText = new pdfTextExtractor("newdoc");
+        System.out.println("Title is: " + pdfText.getTitle());
+        System.out.println("Raw Text Extracted: " + pdfText.getRawText());
+               
+      
     }
 }
