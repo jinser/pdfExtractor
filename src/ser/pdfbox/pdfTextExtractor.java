@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.io.File;
 import java.util.Calendar; 
 import java.util.GregorianCalendar;
+import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.HashMap;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -39,11 +43,7 @@ public class pdfTextExtractor {
         
     }
     
-    public pdfTextExtractor(String pdfName) throws IOException {
-        loadPdfAndExtractText(pdfName);
-    }
-    
-    public void loadPdfAndExtractText(String pdfName) throws IOException {
+    public List<String> loadPdfAndExtractText(String pdfName) throws IOException {
         updateExistingFileLocation(pdfName);
         File file = new File(_existingFileLocation.toString());
         _existingPdf = PDDocument.load(file);
@@ -52,11 +52,29 @@ public class pdfTextExtractor {
         System.out.println("Num of pages: " + noOfPages);
         
         getDocInfo();
-         
-        PDFTextStripper pdfStripper = new PDFTextStripper();
-        setRawText(pdfStripper.getText(_existingPdf));
+        List<String> pagesText = new ArrayList<String>();
+        for(int i = 0; i < noOfPages; i++) {
+            PDFTextStripper pdfStripper = new PDFTextStripper();
+            pdfStripper.setStartPage(i);
+            pdfStripper.setEndPage(i+1);
+            pagesText.add(pdfStripper.getText(_existingPdf));
+        }
         
         _existingPdf.close();
+        return pagesText;
+    }
+    
+    public HashMap<Integer,HashMap<Integer,String>> getSegmentedText(List<String> rawText) {
+        HashMap<Integer,HashMap<Integer,String>> pagesAndSegments = new HashMap<Integer,HashMap<Integer,String>>();
+        for(int i =0; i < rawText.size(); i++) {
+            List<String> pageSegments = parseRawText(rawText.get(i));
+            HashMap<Integer,String> segmentsForSinglePage = new HashMap<Integer,String>();
+            for(int j = 0; j < pageSegments.size();j++) {
+                segmentsForSinglePage.put(j,pageSegments.get(j));
+            }
+            pagesAndSegments.put(i,segmentsForSinglePage);
+        }
+        return pagesAndSegments;
     }
     
     private void updateExistingFileLocation(String filename) {
@@ -64,6 +82,15 @@ public class pdfTextExtractor {
         _existingFileLocation.append(RESOURCE_LOCATION);
         _existingFileLocation.append(filename);
         _existingFileLocation.append(PDF_FORMAT);
+    }
+    
+    private List<String> parseRawText(String raw) {
+        Scanner scan = new Scanner(raw).useDelimiter("\n");
+        List<String> rawTextSegments = new ArrayList<String>();
+        while(scan.hasNext()){
+            rawTextSegments.add(scan.next());
+        }
+        return rawTextSegments;
     }
     
     private void getDocInfo() {
@@ -125,4 +152,5 @@ public class pdfTextExtractor {
     public String getRawText() {
         return _rawText;
     }
+    
 }
