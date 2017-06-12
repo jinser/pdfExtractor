@@ -1,3 +1,4 @@
+
 package ser.pdfbox;
 
 import java.io.IOException; 
@@ -8,6 +9,13 @@ import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.File;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -36,6 +44,7 @@ public class pdfTextExtractor {
     private String _rawText;
     
     private static final String RESOURCE_LOCATION = "resource/";
+    private static final String TEXT_OUTPUT_LOCATION ="output/";
     private static final String PDF_FORMAT = ".pdf";
     
     //constructor
@@ -58,10 +67,28 @@ public class pdfTextExtractor {
             pdfStripper.setStartPage(i);
             pdfStripper.setEndPage(i+1);
             pagesText.add(pdfStripper.getText(_existingPdf));
+            
+            pagesText.add("-------------------------------------Page Number: " + i + "-------------------------------------\n");
         }
-        
+        System.out.println("completed loadPdfandExtractText Function");
         _existingPdf.close();
         return pagesText;
+    }
+    
+    public String writeRawTextToFile(List<String> text, String outputFileName) throws IOException {
+        FileOutputStream output = null;
+		ObjectOutputStream objOutputStream = null;
+		StringBuilder fileNameLocation =  new StringBuilder(TEXT_OUTPUT_LOCATION);
+		fileNameLocation.append(outputFileName);
+		fileNameLocation.append(".txt"); System.out.println(fileNameLocation.toString());
+        try {
+            output = new FileOutputStream(fileNameLocation.toString());
+            objOutputStream = new ObjectOutputStream(output);
+            objOutputStream.writeObject(text);
+        } catch (IOException e) {
+            System.out.println("write to txt file error: " + e);
+        }
+        return fileNameLocation.toString();
     }
     
     public HashMap<Integer,HashMap<Integer,String>> getSegmentedText(List<String> rawText) {
@@ -75,6 +102,21 @@ public class pdfTextExtractor {
             pagesAndSegments.put(i,segmentsForSinglePage);
         }
         return pagesAndSegments;
+    }
+    
+     public List<String> getFileNamesFromFolder(String folderLocation) {
+        List<String> fileNames = new ArrayList<String>();
+        File[] files = new File(folderLocation).listFiles();
+
+        for(int i = 0; i < files.length;i++) {
+            if(files[i].isFile()) {
+                //remove file types and only store file names
+                if(files[i].getName().indexOf(".")>0) {
+                    fileNames.add(files[i].getName().substring(0,files[i].getName().indexOf(".")));
+                }
+            }
+        }
+        return fileNames;
     }
     
     private void updateExistingFileLocation(String filename) {
